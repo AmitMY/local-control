@@ -19,13 +19,13 @@
   "build": {
     "appId": "yourappid",
     "win": {
-	   "target": "NSIS"
-	}
+      "target": "NSIS"
+    }
   },
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "~1.7.8",
-    "electron-builder": "^19.54.0"
+    "electron": "^1.7.11",
+    "electron-builder": "^19.55.3"
   }
 }
