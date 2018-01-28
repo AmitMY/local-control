@@ -1,10 +1,12 @@
 {
-  "name": "electron-quick-start",
+  "name": "local-control",
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist": "build"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
@@ -14,9 +16,16 @@
     "tutorial",
     "demo"
   ],
+  "build": {
+    "appId": "yourappid",
+    "win": {
+	   "target": "NSIS"
+	}
+  },
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "~1.7.8"
+    "electron": "~1.7.8",
+    "electron-builder": "^19.54.0"
   }
 }

@@ -1,19 +1,108 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+<head>
+  <meta charset="UTF-8">
+  <title>Local Control</title>
 
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #terminal {
+      overflow: scroll;
+      height: 200px;
+      background: black;
+      color: #20C20E;
+    }
+
+    #users {
+      height: 100%;
+    }
+
+    .user {
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      line-height: 100px;
+      margin: 10px;
+      background-color: red;
+      color: white;
+      font-size: 20px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .user.active {
+      background-color: green;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="users"></div>
+<div id="terminal"></div>
+
+<script>
+  const exec = require('child_process').exec;
+
+  const usersElement = document.getElementById("users");
+  const terminalElement = document.getElementById("terminal");
+
+  function command(cmd, callback) {
+    let lines = terminalElement.innerHTML.split("<br>");
+    if (lines.length === 0) {
+      lines.push("1 || " + cmd)
+    } else {
+      const [lastCount, lastCommand] = lines[lines.length - 1].split(" || ");
+      if (lastCommand === cmd) {
+        console.log(lastCount, lastCommand)
+        lines[lines.length - 1] = (Number(lastCount) + 1) + " || " + cmd;
+      } else {
+        lines.push("1 || " + cmd)
+      }
+    }
+    terminalElement.innerHTML = lines.join("<br>");
+    terminalElement.scrollTop = terminalElement.scrollHeight;
+
+    exec(cmd, callback)
+  }
+
+  setInterval(() => {
+    command("qwinsta", (error, stdout, stderr) => {
+      usersElement.innerHTML = "";
+      stdout.split("\n").forEach(line => {
+        const params = line.split(" ").filter(a => a.trim().length > 0);
+
+        const sessionId = params.find(p => !isNaN(p)) // Look for a number
+
+        if (params.length > 3 && ["SESSIONNAME", "services"].indexOf(params[0]) === -1) {
+          const div = document.createElement("div");
+          div.classList.add("user");
+          div.innerText = params[1];
+          div.title = line;
+          div.dataset.sessionId = params[2];
+
+          const isActive = params[3] === "Active";
+          if (isActive) {
+            div.classList.add("active");
+            div.addEventListener("click", (event) => {
+              const sessionId = event.target.dataset.sessionId;
+              command("mstsc /v:localhost /shadow:" + sessionId + " /control /noConsentPrompt")
+            })
+          }
+          usersElement.appendChild(div)
+        }
+      });
+
+      if (error !== null) {
+        document.write('exec error: ' + error);
+      }
+    });
+  }, 1000)
+</script>
+</body>
 </html>
